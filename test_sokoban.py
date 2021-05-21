@@ -1,6 +1,11 @@
+import pygame
+import sys
+from threading import Thread
 
+pygame.init()
 #맵 프리셋 객체
 #모든 맵은 다음과 같은 값을 가져야함
+
 
 # map_struct = 맵 구조 (리스트)
 # player_loc = 초기 플레이어의 위치
@@ -24,16 +29,47 @@ Test_map_1 = Map_preset(
               ["w","w"," "," ","_","w"],
               ["w","w","w","w","w","w"]],[1,1],2)
 
+#이미지 불러옴
+image_character = pygame.image.load('sprite/character.png')
+image_character_and_mark = pygame.image.load('sprite/character and mark.png')
+image_box = pygame.image.load('sprite/box.png')
+image_box_amd_mark = pygame.image.load('sprite/box and mark.png')
+image_block = pygame.image.load('sprite/block.png')
+image_mark = pygame.image.load('sprite/mark.png')
+image_None = pygame.image.load('sprite/None.png')
+
+#폰트 불러옴
+fipps = pygame.font.Font("fonts/Fipps-Regular.ttf", 30)
+
 
 #맵 보여주는 함수
-def show_map(map):
+def show_map(map,screen):
+    x = 64
+    y = 160
+
+
     for row in map:
         for entry in row:
             #벽 보양 바꾸어서 보여줌
             if entry == "w":
-                entry = "■"
-            print(entry,end=" ")
-        print("")
+                screen.blit(image_block,(x,y))
+            elif entry == "o":
+                screen.blit(image_box,(x,y))
+            elif entry == "_":
+                screen.blit(image_mark,(x,y))
+            elif entry == "X":
+                screen.blit(image_box_amd_mark,(x,y))
+            elif entry == "&":
+                screen.blit(image_character,(x,y))
+            elif entry == "±":
+                screen.blit(image_character_and_mark,(x,y))
+            elif entry == " ":
+                screen.blit(image_None, (x, y))
+            x += 32
+            # print(entry,end=" ")
+        # print("")
+        y += 32
+        x = 64
 
 
 
@@ -76,7 +112,7 @@ def character_move(play_loc,dir,map,score):
             #박스가 움직이는 곳에 골인 지점이 있다면
             elif map[box_y][box_x - 1] == "_":
                 #남은 박스의 갯수 줄여줌 & 만약 남은 박스가 없다면 게임 종료
-                score = setscore(score,-1)
+                score -= 1
                 #해당 공간을 완료된 구역으로 변경
                 map[box_y][box_x - 1] = "X"
                 #박스가 있던 위치는 다시 빈공간으로
@@ -145,7 +181,7 @@ def character_move(play_loc,dir,map,score):
 
 
             elif map[box_y][box_x + 1] == "_":
-                score = setscore(score,-1)
+                score -= 1
                 map[box_y][box_x + 1] = "X"
                 map[box_y][box_x] = " "
                 map[player_y][player_x + 1] = "&"
@@ -199,7 +235,7 @@ def character_move(play_loc,dir,map,score):
 
 
             elif map[box_y-1][box_x] == "_":
-                score = setscore(score,-1)
+                score -= 1
                 map[box_y-1][box_x] = "X"
                 map[box_y][box_x] = " "
                 map[player_y-1][player_x] = "&"
@@ -255,7 +291,7 @@ def character_move(play_loc,dir,map,score):
 
 
             elif map[box_y + 1][box_x] == "_":
-                score = setscore(score, -1)
+                score -= 1
                 map[box_y + 1][box_x] = "X"
                 map[box_y][box_x] = " "
                 map[player_y + 1][player_x] = "&"
@@ -304,17 +340,15 @@ def character_move(play_loc,dir,map,score):
 def cantmove():
     print(">> 움직일 수 없는 곳입니다!")
 
-#해당 값만큼 남은 상자의 갯수 증가시킴
-def setscore(score,amount):
-    score += amount
-    #종료 메시지
-    if score == 0:
-        print("축하합니다! 클리어하셨습니다!")
-    #오류 방지를 위한 예외처리
-    elif score < 0:
-        print("error>setscore>점수가 0보다 낮습니다!")
 
-    return score
+
+
+def Thread_check_keydown(check):
+    pass
+
+def Thread_check_keyup(check):
+    pass
+
 #소코반의 메인 함수 이 함수를 호출하여 소코반 시작
 def main_sokoban():
     #맵의 기본 정보 불러옴
@@ -325,27 +359,91 @@ def main_sokoban():
     player_loc = Test_map_1.player_loc
     score = Test_map_1.score
 
+    SCREEN_WIDTH = 320
+    SCREEN_HEIGHT = 480
+
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("소코반")
+    screen.fill((0,0,0))
+    fps = pygame.time.Clock()
+    #키 눌렀는지 확인하는 변수
+    check = False
+    title_font = pygame.font.Font("fonts/Fipps-Regular.ttf", 30)
+    other_font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 10)
+
+    pygame.display.update()
+
     #남은 박스의 갯수가 0일때 종료
-    while(score > 0):
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
         #방향 입력받는 변수
         push_key = ""
         #맵 보여줌
-        show_map(map)
-        #남은 박스 갯수 표시
-        print("Left boxes >> ",score)
-        #현재 위치 표시
-        print("Your location >> ", [player_loc[0]+1,player_loc[1]+1])
-        print("< < 이동할 방향을 입력하세요 > >")
-        print(" ←(l)  ↑(u)  ↓(d)  →(r) ")
-        push_key = input(">> ")
-        #입력받은 값 확인
-        if push_key in ["l","u","d","r"]:
-            player_loc,map,score = character_move(player_loc,push_key,map,score)
-        #예외처리
-        else:
-            print("키를 잘못 입력하셨습니다.")
+        screen.fill((0, 0, 0))
+        show_map(map,screen)
 
-    show_map(map)
+        text_loc = "Your location >> " + str(player_loc[0] + 1) + "," + str(player_loc[1] + 1)
+        text_box = "left Box(es) >> " + str(score)
+        loc = other_font.render(text_loc, True, (255, 255, 255))
+        box = other_font.render(text_box, True, (255, 255, 255))
+        title = title_font.render("Sokoban", True, (255, 255, 255))
+        screen.blit(loc, (60, 80))
+        screen.blit(title,(50, 10))
+        screen.blit(box, (60, 100))
+
+        if score == 0:
+            font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
+            text = font.render("You Win!", True, (255, 255, 255))
+            screen.blit(text, (50, 400))
+            pygame.display.update()
+        pygame.display.update()
+
+        # #남은 박스 갯수 표시
+        # print("Left boxes >> ",score)
+        # #현재 위치 표시
+        # print("Your location >> ", [player_loc[0]+1,player_loc[1]+1])
+        # print("< < 이동할 방향을 입력하세요 > >")
+        # print(" ←(l)  ↑(u)  ↓(d)  →(r) ")
+        # push_key = input(">> ")
+        # #입력받은 값 확인
+        # if push_key in ["l","u","d","r"]:
+        #     player_loc,map,score = character_move(player_loc,push_key,map,score)
+        #예외처리
+        #
+        # else:
+        #     print("키를 잘못 입력하셨습니다.")
+
+
+        # 방향키 인식
+        if event.type == pygame.KEYDOWN and check == False:
+            key_event = pygame.key.get_pressed()
+            if key_event[pygame.K_LEFT]:
+                push_key = "l"
+
+            if key_event[pygame.K_RIGHT]:
+                push_key = "r"
+
+            if key_event[pygame.K_UP]:
+                push_key = "u"
+
+            if key_event[pygame.K_DOWN]:
+                push_key = "d"
+
+            if key_event[pygame.K_TAB]:
+                break
+                pygame.QUIT
+                sys.exit()
+            check = True
+            player_loc, map, score = character_move(player_loc, push_key, map, score)
+
+        if event.type == pygame.KEYUP:
+            check = False
+
+
+        fps.tick(30)
+        show_map(map,screen)
 
 #소코반 시작
 main_sokoban()
