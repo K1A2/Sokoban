@@ -83,255 +83,116 @@ def character_move(play_loc,dir,map,score):
     player_x = play_loc[0]
     player_y = play_loc[1]
 
-    
-    #왼쪽 이동
-    if dir == "l":
-        
-        #이동할려는 곳에 벽이 있는지 확인
-        if map[player_y][player_x - 1] == "w":
-                
-            #이동 불가 메시지 띄어줌
-            cantmove()
-        
-        #이미 박스가 들어간 자리가 있는지 확인
-        elif map[player_y][player_x - 1] == "X":
-            # 이동 불가 메시지 
-            cantmove()
-        
-        #이동할려는 곳에 상자가 있는지 확인
-        elif map[player_y][player_x - 1] == "o":
-            #편의를 위해 박스의 좌표를 가져옴
-            box_x = player_x - 1
-            box_y = player_y
-            
-            #박스가 움직이는 곳에 벽이 있는지 확인
-            if map[box_y][box_x - 1] == "w":
-                #이동불가
-                cantmove()
-
-            #박스가 움직이는 곳에 골인 지점이 있다면
-            elif map[box_y][box_x - 1] == "_":
-                #남은 박스의 갯수 줄여줌 & 만약 남은 박스가 없다면 게임 종료
-                score -= 1
-                #해당 공간을 완료된 구역으로 변경
-                map[box_y][box_x - 1] = "X"
-                #박스가 있던 위치는 다시 빈공간으로
-                map[box_y][box_x] = " "
-                #플레이어를 이동시킴
-                map[player_y][player_x - 1] = "&"
-                #플레이어가 있던 위치는 다시 빈공간으로
-                map[player_y][player_x] = " "
-                #위치 갱신
-                play_loc = [player_x - 1, player_y]
-            
-            #박스가 움직이는 곳이 빈공간 이면
-            elif map[box_y][box_x - 1] == " ":
-                #박스 이동 및 원래 위치 빈공간으로
-                map[box_y][box_x - 1] = "o"
-                map[box_y][box_x] = " "
-                #플레이어 이동 및 원래 위치 빈공간으로
-                map[player_y][player_x - 1] = "&"
-                map[player_y][player_x] = " "
-                #플레이어 위치 갱신
-                play_loc = [player_x - 1, player_y]
-
-            #인식 불가능한 문자 예외 처리
-            else:
-                print("error>character_move>인식할 수 없는 공간입니다.")
-                
-        #이동하는 곳이 빈공간인지 확인 & 플레이어 위치가 이상이 있는지 까지 체크함
-        elif map[player_y][player_x - 1] == " " and map[player_y][player_x] == "&":
-            map[player_y][player_x - 1] = "&"
-            map[player_y][player_x] = " "
-            play_loc = [player_x - 1, player_y]
-        #이동할려는 곳이 빈공간인지 확인 & 플레이어가 만약 목표지점 위에 있었는지 확인
-        elif map[player_y][player_x - 1] == " " and map[player_y][player_x] == "±":
-            map[player_y][player_x - 1] = "&"
-            #목표지점으로 다시 표시
-            map[player_y][player_x] = "_"
-            play_loc = [player_x - 1, player_y]
-            
-        #이동할려는 곳이 목표지점이면 플레이어 모양 변경
-        elif map[player_y][player_x - 1] == "_":
-            map[player_y][player_x - 1] = "±"
-            map[player_y][player_x] = " "
-            play_loc = [player_x - 1, player_y]
-
-        #오류 방지를 위한 예외처리
-        else:
-            print("error>character_move>인식할 수 없는 공간입니다.")
-
-    #오른쪽 방향
-    #아래 코드는 방향 제외하곤 모두 동일
-    elif dir == "r":
-
-        if map[player_y][player_x + 1] == "w":
-            cantmove()
-
-        elif map[player_y][player_x + 1] == "X":
-            cantmove()
-
-        elif map[player_y][player_x + 1] == "o":
-
-            box_x = player_x + 1
-            box_y = player_y
-
-            if map[box_y][box_x + 1] == "w":
-                cantmove()
 
 
-            elif map[box_y][box_x + 1] == "_":
-                score -= 1
-                map[box_y][box_x + 1] = "X"
-                map[box_y][box_x] = " "
-                map[player_y][player_x + 1] = "&"
-                map[player_y][player_x] = " "
-                play_loc = [player_x + 1, player_y]
+    if score == - 9999:
+        pass
 
-            elif map[box_y][box_x + 1] == " ":
-                map[box_y][box_x + 1] = "o"
-                map[box_y][box_x] = " "
-                map[player_y][player_x + 1] = "&"
-                map[player_y][player_x] = " "
-                play_loc = [player_x + 1, player_y]
-
-            else:
-                print("error>character_move>인식할 수 없는 공간입니다.")
-
-        elif map[player_y][player_x + 1] == " " and map[player_y][player_x] == "&":
-            map[player_y][player_x + 1] = "&"
-            map[player_y][player_x] = " "
-            play_loc = [player_x + 1, player_y]
-
-        elif map[player_y][player_x + 1] == " " and map[player_y][player_x] == "±":
-            map[player_y][player_x + 1] = "&"
-            map[player_y][player_x] = "_"
-            play_loc = [player_x + 1, player_y]
-
-        elif map[player_y][player_x + 1] == "_":
-            map[player_y][player_x + 1] = "±"
-            map[player_y][player_x] = " "
-            play_loc = [player_x + 1, player_y]
-
-        else:
-            print("error>character_move>인식할 수 없는 공간입니다.")
-
-    #위쪽 방향
-    elif dir == "u":
-
-        if map[player_y-1][player_x] == "w":
-            cantmove()
-
-        elif map[player_y-1][player_x] == "X":
-            cantmove()
-
-        elif map[player_y-1][player_x] == "o":
-
-            box_x = player_x
-            box_y = player_y - 1
-
-            if map[box_x][box_y-1] == "w":
-                cantmove()
-
-
-            elif map[box_y-1][box_x] == "_":
-                score -= 1
-                map[box_y-1][box_x] = "X"
-                map[box_y][box_x] = " "
-                map[player_y-1][player_x] = "&"
-                map[player_y][player_x] = " "
-                play_loc = [player_x, player_y - 1]
-
-
-            elif map[box_y-1][box_x] == " ":
-                map[box_y-1][box_x] = "o"
-                map[box_y][box_x] = " "
-                map[player_y-1][player_x] = "&"
-                map[player_y][player_x] = " "
-                play_loc = [player_x, player_y - 1]
-
-
-            else:
-                print("error>character_move>인식할 수 없는 공간입니다.")
-
-        elif map[player_y - 1][player_x] == " " and map[player_y][player_x] == "&":
-            map[player_y - 1][player_x] = "&"
-            map[player_y][player_x] = " "
-            play_loc = [player_x, player_y - 1]
-
-        elif map[player_y - 1][player_x] == " " and map[player_y][player_x] == "±":
-            map[player_y - 1][player_x] = "&"
-            map[player_y][player_x] = "_"
-            play_loc = [player_x, player_y - 1]
-
-        elif map[player_y - 1][player_x] == "_":
-            map[player_y - 1][player_x] = "±"
-            map[player_y][player_x] = " "
-            play_loc = [player_x, player_y - 1]
-
-        else:
-            print("error>character_move>인식할 수 없는 공간입니다.")
-
-    #아래쪽 방향
-    elif dir == "d":
-
-        if map[player_y + 1][player_x] == "w":
-            cantmove()
-
-        elif map[player_y + 1][player_x] == "X":
-            cantmove()
-
-        elif map[player_y + 1][player_x] == "o":
-
-            box_x = player_x
-            box_y = player_y + 1
-
-            if map[box_y + 1][box_x] == "w":
-                cantmove()
-
-
-            elif map[box_y + 1][box_x] == "_":
-                score -= 1
-                map[box_y + 1][box_x] = "X"
-                map[box_y][box_x] = " "
-                map[player_y + 1][player_x] = "&"
-                map[player_y][player_x] = " "
-                play_loc = [player_x,player_y+1]
-
-
-            elif map[box_y + 1][box_x] == " ":
-                map[box_y + 1][box_x] = "o"
-                map[box_y][box_x] = " "
-                map[player_y + 1][player_x] = "&"
-                map[player_y][player_x] = " "
-                play_loc = [player_x,player_y+1]
-
-
-            else:
-                print("error>character_move>인식할 수 없는 공간입니다.")
-
-
-        elif map[player_y + 1][player_x] == " " and map[player_y][player_x] == "&":
-            map[player_y + 1][player_x] = "&"
-            map[player_y][player_x] = " "
-            play_loc = [player_x, player_y + 1]
-
-        elif map[player_y + 1][player_x] == " " and map[player_y][player_x] == "±":
-            map[player_y + 1][player_x] = "&"
-            map[player_y][player_x] = "_"
-            play_loc = [player_x, player_y + 1]
-
-        elif map[player_y+1][player_x] == "_":
-            map[player_y+1][player_x] = "±"
-            map[player_y][player_x] = " "
-            play_loc = [player_x, player_y+1]
-
-        else:
-            print("error>character_move>인식할 수 없는 공간입니다.")
-
-    #l,u,d,r이외의 값이 입력됬을 때 예외처리
     else:
-        print("!error > character_move > dir에 잘못된 방향이 입력됨")
+        if dir in ["l","u","d","r"]:
+            #왼쪽 이동
+            be_x = player_x
+            be_y = player_y
+            if dir == "l":
+                af_x = player_x - 1
+                af_y = player_y
+
+                be_box_x = af_x
+                be_box_y = af_y
+
+                af_box_x = af_x - 1
+                af_box_y = af_y
+
+            elif dir == "r":
+                af_x = player_x + 1
+                af_y = player_y
+
+                be_box_x = af_x
+                be_box_y = af_y
+
+                af_box_x = af_x + 1
+                af_box_y = af_y
+
+            elif dir == "d":
+                af_x = player_x
+                af_y = player_y+1
+
+                be_box_x = af_x
+                be_box_y = af_y
+
+                af_box_x = af_x
+                af_box_y = af_y+1
+
+            elif dir == "u":
+
+                af_x = player_x
+                af_y = player_y-1
+
+                be_box_x = af_x
+                be_box_y = af_y
+
+                af_box_x = af_x
+                af_box_y = af_y-1
+
+            box_loc = [af_box_x, af_box_y]
+
+            #이동할려는 곳에 벽이 있는지 확인
+            if map[af_y][af_x] == "w":
+                #이동 불가 메시지 띄어줌
+                cantmove()
+
+            #이미 박스가 들어간 자리가 있는지 확인
+            elif map[af_y][af_x] == "X":
+            # 이동 불가 메시지
+                cantmove()
+
+                #이동할려는 곳에 상자가 있는지 확인
+            elif map[af_y][af_x] == "o":
+                    #박스가 움직이는 곳에 벽이 있는지 확인
+                if map[af_box_y][af_box_x] == "w":
+                        #이동불가
+                    cantmove()
+
+                    #박스가 움직이는 곳에 골인 지점이 있다면
+                elif map[af_box_y][af_box_x] == "_":
+                        #남은 박스의 갯수 줄여줌 & 만약 남은 박스가 없다면 게임 종료
+                    score -= 1
+                        #해당 공간을 완료된 구역으로 변경
+                    map,_ = change_mark(map, be_box_x, be_box_y, af_box_x, af_box_y, " ", "X")
+                        #플레이어를 이동시킴
+                    map,play_loc = change_mark(map,be_x,be_y,af_x,af_y," ","&")
+
+                    #박스가 움직이는 곳이 빈공간 이면
+                elif map[af_box_y][af_box_x] == " ":
+                        #박스 이동 및 원래 위치 빈공간으로
+                    map, _ = change_mark(map, be_box_x, be_box_y, af_box_x, af_box_y, " ", "o")
+                        #플레이어 이동 및 원래 위치 빈공간으로
+                    map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "&")
+                        #박스를 더 이상 움직일 수 없는지 확인
+                    score = check_game_over(box_loc, map, score)
+
+                    #인식 불가능한 문자 예외 처리
+                else:
+                    print("error>character_move>인식할 수 없는 공간입니다.")
+
+                #이동하는 곳이 빈공간인지 확인 & 플레이어 위치가 이상이 있는지 까지 체크함
+            elif map[af_y][af_x] == " " and map[player_y][player_x] == "&":
+                map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "&")
+                #이동할려는 곳이 빈공간인지 확인 & 플레이어가 만약 목표지점 위에 있었는지 확인
+            elif map[af_y][af_x] == " " and map[player_y][player_x] == "±":
+                map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, "_", "&")
+
+                #이동할려는 곳이 목표지점이면 플레이어 모양 변경
+            elif map[af_y][af_x] == "_":
+                map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "±")
+
+                #오류 방지를 위한 예외처리
+            else:
+                print("error>character_move>인식할 수 없는 공간입니다.")
+
+        #l,u,d,r이외의 값이 입력됬을 때 예외처리
+        else:
+            print("!error > character_move > dir에 잘못된 방향이 입력됨")
 
     #갱신된 값들을 다시 반환
     return play_loc,map,score
@@ -340,14 +201,26 @@ def character_move(play_loc,dir,map,score):
 def cantmove():
     print(">> 움직일 수 없는 곳입니다!")
 
+def check_game_over(box_loc,map,score):
 
+    count = 0
+    if (map[box_loc[1]+1][box_loc[0]] in ["w","o","X"]):
+        count += 1
+    if (map[box_loc[1]-1][box_loc[0]] in ["w","o","X"]):
+        count += 1
+    if (map[box_loc[1]][box_loc[0]+1] in ["w","o","X"]):
+        count += 1
+    if (map[box_loc[1]][box_loc[0]-1] in ["w","o","X"]):
+        count += 1
 
+    if count >= 2:
+        score = -9999
+    return score
 
-def Thread_check_keydown(check):
-    pass
-
-def Thread_check_keyup(check):
-    pass
+def change_mark(map,be_x,be_y,af_x,af_y,be_mark,af_mark):
+    map[af_y][af_x] = af_mark
+    map[be_y][be_x] = be_mark
+    return map,[af_x,af_y]
 
 #소코반의 메인 함수 이 함수를 호출하여 소코반 시작
 def main_sokoban():
@@ -368,6 +241,8 @@ def main_sokoban():
     fps = pygame.time.Clock()
     #키 눌렀는지 확인하는 변수
     check = False
+    check_key = ""
+
     title_font = pygame.font.Font("fonts/Fipps-Regular.ttf", 30)
     other_font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 10)
 
@@ -398,7 +273,14 @@ def main_sokoban():
             text = font.render("You Win!", True, (255, 255, 255))
             screen.blit(text, (50, 400))
             pygame.display.update()
+
+        if score == -9999:
+            font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
+            text = font.render("You Lose!", True, (255, 255, 255))
+            screen.blit(text, (50, 400))
+            pygame.display.update()
         pygame.display.update()
+
 
         # #남은 박스 갯수 표시
         # print("Left boxes >> ",score)
@@ -417,24 +299,26 @@ def main_sokoban():
 
 
         # 방향키 인식
+        key_event = pygame.key.get_pressed()
         if event.type == pygame.KEYDOWN and check == False:
             key_event = pygame.key.get_pressed()
             if key_event[pygame.K_LEFT]:
                 push_key = "l"
-
+                check_key = "l"
             if key_event[pygame.K_RIGHT]:
                 push_key = "r"
-
+                check_key = "r"
             if key_event[pygame.K_UP]:
                 push_key = "u"
-
+                check_key = "u"
             if key_event[pygame.K_DOWN]:
                 push_key = "d"
-
+                check_key = "d"
             if key_event[pygame.K_TAB]:
                 break
                 pygame.QUIT
                 sys.exit()
+
             check = True
             player_loc, map, score = character_move(player_loc, push_key, map, score)
 
@@ -444,6 +328,7 @@ def main_sokoban():
 
         fps.tick(30)
         show_map(map,screen)
+
 
 #소코반 시작
 main_sokoban()
