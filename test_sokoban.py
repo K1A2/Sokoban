@@ -56,11 +56,17 @@ class MainMenuButton:
 
 #임시 테스트 맵1
 map_p = [["w","w","w","w","w","w"],
-              ["w","&"," ","o","_","w"],
-              ["w"," "," "," "," ","w"],
+              ["w","&"," "," ","_","w"],
+              ["w"," "," ","o"," ","w"],
               ["w","w"," ","o"," ","w"],
               ["w","w"," "," ","_","w"],
               ["w","w","w","w","w","w"]]
+# map_p = [["w","w","w","w","w","w",'w','w','w','w'],
+#          ["w","&"," ","o","_"," "," "," "," ","w"],
+#          ["w"," "," "," ","w","w","w"," ","_","w"],
+#          ["w","w"," ","w","w","w"," "," "," ","w"],
+#          ["w","w"," ","o"," "," "," "," ","w","w"],
+#          ["w","w","w","w","w","w","w","w","w","w"]]
 
 #이미지 불러옴
 image_character = pygame.image.load('sprite/character.png')
@@ -92,7 +98,7 @@ def show_map(map,screen, x, y):
                 screen.blit(image_box_amd_mark,(x,y))
             elif entry == "&":
                 screen.blit(image_character,(x,y))
-            elif entry == "±":
+            elif entry == "@":
                 screen.blit(image_character_and_mark,(x,y))
             elif entry == " ":
                 screen.blit(image_None, (x, y))
@@ -120,7 +126,7 @@ def character_move(play_loc,dir,map,score):
         pass
 
     else:
-        if (dir in ["l","u","d","r"]):
+        if dir in ["l","u","d","r"]:
             #왼쪽 이동
             be_x = player_x
             be_y = player_y
@@ -191,14 +197,17 @@ def character_move(play_loc,dir,map,score):
                         #해당 공간을 완료된 구역으로 변경
                     map,_ = change_mark(map, be_box_x, be_box_y, af_box_x, af_box_y, " ", "X")
                         #플레이어를 이동시킴
-                    map,play_loc = change_mark(map,be_x,be_y,af_x,af_y," ","&")
+                    map, play_loc = change_mark(map,be_x,be_y,af_x,af_y," ","&")
 
                     #박스가 움직이는 곳이 빈공간 이면
                 elif map[af_box_y][af_box_x] == " ":
                         #박스 이동 및 원래 위치 빈공간으로
                     map, _ = change_mark(map, be_box_x, be_box_y, af_box_x, af_box_y, " ", "o")
                         #플레이어 이동 및 원래 위치 빈공간으로
-                    map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "&")
+                    if map[be_y][be_x] == "@":
+                        map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, "_", "&")
+                    elif map[be_y][be_x] == "&":
+                        map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "&")
                         #박스를 더 이상 움직일 수 없는지 확인
                     score = check_game_over(box_loc, map, score)
 
@@ -210,12 +219,12 @@ def character_move(play_loc,dir,map,score):
             elif map[af_y][af_x] == " " and map[player_y][player_x] == "&":
                 map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "&")
                 #이동할려는 곳이 빈공간인지 확인 & 플레이어가 만약 목표지점 위에 있었는지 확인
-            elif map[af_y][af_x] == " " and map[player_y][player_x] == "±":
+            elif map[af_y][af_x] == " " and map[player_y][player_x] == "@":
                 map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, "_", "&")
 
                 #이동할려는 곳이 목표지점이면 플레이어 모양 변경
             elif map[af_y][af_x] == "_":
-                map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "±")
+                map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "@")
 
                 #오류 방지를 위한 예외처리
             else:
@@ -259,12 +268,12 @@ def main_sokoban():
     #map_struct = 맵 구조 (리스트)
     #player_loc = 초기 플레이어의 위치
     #score = 초기 박스의 갯수
-    Test_map_1 = Map_preset(map_p.copy(), [1, 1], 2)
+    Test_map_1 = Map_preset(copy.deepcopy(map_p), [1, 1], 2)
     map = Test_map_1.map_struct
     player_loc = Test_map_1.player_loc
     score = Test_map_1.score
 
-    SCREEN_WIDTH_1P = SCREEN_MARGIN * 2 + len(map) * ONE_BLOCK_SIZE
+    SCREEN_WIDTH_1P = SCREEN_MARGIN * 2 + len(map[0]) * ONE_BLOCK_SIZE
     screen = pygame.display.set_mode((SCREEN_WIDTH_1P, SCREEN_HEIGHT))
     pygame.display.set_caption("소코반_1p")
     screen.fill((0,0,0))
@@ -346,8 +355,7 @@ def main_sokoban():
                 check_key = "d"
             if key_event[pygame.K_TAB]:
                 break
-                pygame.QUIT
-                sys.exit()
+                show_start_page()
 
             check = True
             player_loc, map, score = character_move(player_loc, push_key, map, score)
@@ -372,7 +380,7 @@ def main_sokoban_2p():
     player_loc_2p = Test_map_2.player_loc
     score_2p = Test_map_2.score
 
-    SCREEN_WIDTH_2P = SCREEN_MARGIN * 2 + len(map_1p) * ONE_BLOCK_SIZE * 2 + MAP_MIDDLE_GAP
+    SCREEN_WIDTH_2P = SCREEN_MARGIN * 2 + len(map_1p[0]) * ONE_BLOCK_SIZE * 2 + MAP_MIDDLE_GAP
     screen = pygame.display.set_mode((SCREEN_WIDTH_2P, SCREEN_HEIGHT))
     pygame.display.set_caption("소코반 2p")
     screen.fill((0, 0, 0))
@@ -394,21 +402,21 @@ def main_sokoban_2p():
         screen.blit(title,((SCREEN_WIDTH_2P - title.get_width()) / 2, 10))
 
         show_map(map_1p, screen, SCREEN_MARGIN, 160)
-        show_map(map_2p, screen, SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP, 160)
+        show_map(map_2p, screen, SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP, 160)
 
         text_loc_1p = "1p location >> " + str(player_loc_1p[0] + 1) + "," + str(player_loc_1p[1] + 1)
         text_box_1p = "1p left Box(es) >> " + str(score_1p)
         loc_1p = other_font.render(text_loc_1p, True, (255, 255, 255))
         box_1p = other_font.render(text_box_1p, True, (255, 255, 255))
-        screen.blit(loc_1p, (((SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - loc_1p.get_width()) / 2, 80))
-        screen.blit(box_1p, (((SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - box_1p.get_width()) / 2, 100))
+        screen.blit(loc_1p, (((SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - loc_1p.get_width()) / 2, 80))
+        screen.blit(box_1p, (((SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - box_1p.get_width()) / 2, 100))
 
         text_loc_2p = "2p location >> " + str(player_loc_2p[0] + 1) + "," + str(player_loc_2p[1] + 1)
         text_box_2p = "2p left Box(es) >> " + str(score_2p)
         loc_2p = other_font.render(text_loc_2p, True, (255, 255, 255))
         box_2p = other_font.render(text_box_2p, True, (255, 255, 255))
-        screen.blit(loc_2p, (((SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - loc_2p.get_width()) / 2 + SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE, 80))
-        screen.blit(box_2p, (((SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - box_2p.get_width()) / 2 + SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE, 100))
+        screen.blit(loc_2p, (((SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - loc_2p.get_width()) / 2 + SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE, 80))
+        screen.blit(box_2p, (((SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - box_2p.get_width()) / 2 + SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE, 100))
 
         if score_1p == 0 and score_2p == 0:
             font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
@@ -487,8 +495,7 @@ def main_sokoban_2p():
 
             if key_event[pygame.K_TAB]:
                 break
-                pygame.QUIT
-                sys.exit()
+                show_start_page()
 
         # event = pygame.event.wait()
         if event.type == pygame.KEYUP:
@@ -499,7 +506,7 @@ def main_sokoban_2p():
                 check_2p = False
 
         show_map(map_1p, screen, SCREEN_MARGIN, 160)
-        show_map(map_2p, screen, SCREEN_MARGIN + len(map_2p) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP, 160)
+        show_map(map_2p, screen, SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP, 160)
 
         pygame.display.update()
         fps.tick(60)
