@@ -8,6 +8,7 @@ pygame.init()
 SCREEN_WIDTH = 320
 SCREEN_HEIGHT = 480
 SCREEN_MARGIN = 64
+SCREEN_TOP_PART = 160
 ONE_BLOCK_SIZE = 32
 
 
@@ -18,10 +19,15 @@ class Map_preset:
     map_struct = []
     player_loc = []
     score = 0
-    def __init__(self,map_struct,player_loc,score):
+    def __init__(self,map_struct):
         self.map_struct = map_struct
-        self.player_loc = player_loc
-        self.score = score
+        for i in range(len(map_struct)):
+            for j in range(len(map_struct[0])):
+                code = map_struct[i][j]
+                if code in ['o', 'X']:
+                    self.score += 1
+                elif code == '&':
+                    self.player_loc = [j, i]
 
 class MainMenuButton:
     def __init__(self, x, y, display, text, size, action=None, is_pressed=False):
@@ -55,18 +61,26 @@ class MainMenuButton:
         return self.is_pressed
 
 #임시 테스트 맵1
-map_p = [["w","w","w","w","w","w"],
-              ["w","&"," "," ","_","w"],
-              ["w"," "," ","o"," ","w"],
-              ["w","w"," ","o"," ","w"],
-              ["w","w"," "," ","_","w"],
-              ["w","w","w","w","w","w"]]
+# map_p = [["w","w","w","w","w","w"],
+#               ["w","&"," "," ","_","w"],
+#               ["w"," "," ","o"," ","w"],
+#               ["w","w"," ","o"," ","w"],
+#               ["w","w"," "," ","_","w"],
+#               ["w","w","w","w","w","w"]]
 # map_p = [["w","w","w","w","w","w",'w','w','w','w'],
 #          ["w","&"," ","o","_"," "," "," "," ","w"],
 #          ["w"," "," "," ","w","w","w"," ","_","w"],
 #          ["w","w"," ","w","w","w"," "," "," ","w"],
-#          ["w","w"," ","o"," "," "," "," ","w","w"],
-#          ["w","w","w","w","w","w","w","w","w","w"]]
+#          ["w","w"," ","o"," "," "," "," "," ","w"],
+#          ["w","w","w","w","w","w"," "," ","w","w"]]
+map_p = [['w','w','w','w','w','w','w','w'],
+         ['w','w',' ','&',' ','w','_','w'],
+         ['w',' ',' ','w','o',' ',' ','w'],
+         ['w',' ','o',' ',' ',' ',' ','w'],
+         ['w',' ','w','w',' ','o',' ','w'],
+         ['w',' ',' ','w',' ',' ',' ','w'],
+         ['w','_','w','_',' ',' ',' ','w'],
+         ['w','w','w','w','w','w','w','w']]
 
 #이미지 불러옴
 image_character = pygame.image.load('sprite/character.png')
@@ -209,7 +223,9 @@ def character_move(play_loc,dir,map,score):
                     elif map[be_y][be_x] == "&":
                         map, play_loc = change_mark(map, be_x, be_y, af_x, af_y, " ", "&")
                         #박스를 더 이상 움직일 수 없는지 확인
-                    score = check_game_over(box_loc, map, score)
+                    possible = check_game_over(box_loc, map, [])
+                    if not possible:
+                        score = -9999
 
                     #인식 불가능한 문자 예외 처리
                 else:
@@ -241,21 +257,53 @@ def character_move(play_loc,dir,map,score):
 def cantmove():
     print(">> 움직일 수 없는 곳입니다!")
 
-def check_game_over(box_loc,map,score):
+# def check_game_over(box_loc,map,score):
+#     count = 0
+#     if (map[box_loc[1]+1][box_loc[0]] in ["w","o","X"]):
+#         count += 1
+#     if (map[box_loc[1]-1][box_loc[0]] in ["w","o","X"]):
+#         count += 1
+#     if (map[box_loc[1]][box_loc[0]+1] in ["w","o","X"]):
+#         count += 1
+#     if (map[box_loc[1]][box_loc[0]-1] in ["w","o","X"]):
+#         count += 1
+#
+#     if count >= 2:
+#         score = -9999
+#     return score
 
-    count = 0
-    if (map[box_loc[1]+1][box_loc[0]] in ["w","o","X"]):
-        count += 1
-    if (map[box_loc[1]-1][box_loc[0]] in ["w","o","X"]):
-        count += 1
-    if (map[box_loc[1]][box_loc[0]+1] in ["w","o","X"]):
-        count += 1
-    if (map[box_loc[1]][box_loc[0]-1] in ["w","o","X"]):
-        count += 1
+def check_game_over(box_loc,map, checked_box_loc):
+    dx = [0, 1, 0, -1]
+    dy = [1, 0, -1, 0]
+    check_site = []
+    check_site_bool = [] # 한칸 아래, 한칸 위, 왼쪽, 오른쪽 순으로 이동 가능 여부 저장
+    checked_box_loc.append(box_loc)
+    for i in range(4):
+        check_site.append([box_loc[0] + dx[i], box_loc[1] + dy[i]])
+    while check_site != []:
+        check_pos = check_site.pop(0)
+        x, y = check_pos[0], check_pos[1]
+        if 0 <= x < len(map[0]) and 0 <= y < len(map):
+            code = map[y][x]
+            if code == 'w':
+                check_site_bool.append(False)
+            elif code in ['o', 'X']:
+                if check_pos not in checked_box_loc:
+                    check_site_bool.append(check_game_over([x, y], map, checked_box_loc))
+                else:
+                    check_site_bool.append(False)
+            else:
+                check_site_bool.append(True)
+        else:
+            check_site_bool.append(False)
 
-    if count >= 2:
-        score = -9999
-    return score
+    prev_possibllity = check_site_bool[3]
+    for i in range(4):
+        possibllity = check_site_bool[i]
+        if not (prev_possibllity or possibllity):
+            return False
+        prev_possibllity = possibllity
+    return True
 
 def change_mark(map,be_x,be_y,af_x,af_y,be_mark,af_mark):
     map[af_y][af_x] = af_mark
@@ -268,13 +316,15 @@ def main_sokoban_1p():
     #map_struct = 맵 구조 (리스트)
     #player_loc = 초기 플레이어의 위치
     #score = 초기 박스의 갯수
-    Test_map_1 = Map_preset(copy.deepcopy(map_p), [1, 1], 2)
+    Test_map_1 = Map_preset(copy.deepcopy(map_p))
     map = Test_map_1.map_struct
     player_loc = Test_map_1.player_loc
     score = Test_map_1.score
 
     SCREEN_WIDTH_1P = SCREEN_MARGIN * 2 + len(map[0]) * ONE_BLOCK_SIZE
-    screen = pygame.display.set_mode((SCREEN_WIDTH_1P, SCREEN_HEIGHT))
+    SCREEN_HEIGHT_1P = SCREEN_TOP_PART * 2 + len(map) * ONE_BLOCK_SIZE
+
+    screen = pygame.display.set_mode((SCREEN_WIDTH_1P, SCREEN_HEIGHT_1P))
     pygame.display.set_caption("소코반_1p")
     screen.fill((0,0,0))
     fps = pygame.time.Clock()
@@ -299,7 +349,7 @@ def main_sokoban_1p():
         push_key = ""
         #맵 보여줌
         screen.fill((0, 0, 0))
-        show_map(map,screen, SCREEN_MARGIN, 160)
+        show_map(map,screen, SCREEN_MARGIN, SCREEN_TOP_PART)
 
         text_loc = "Your location >> " + str(player_loc[0] + 1) + "," + str(player_loc[1] + 1)
         text_box = "left Box(es) >> " + str(score)
@@ -314,22 +364,22 @@ def main_sokoban_1p():
             is_finish = True
             font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
             text = font.render("You Win!", True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_1P - text.get_width()) / 2, 400))
+            screen.blit(text, ((SCREEN_WIDTH_1P - text.get_width()) / 2, SCREEN_HEIGHT_1P - SCREEN_TOP_PART + 50))
 
             font_main = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 15)
             text_main = font_main.render('press tab key', True, (255, 255, 255))
-            screen.blit(text_main, ((SCREEN_WIDTH_1P - text_main.get_width()) / 2, 430))
+            screen.blit(text_main, ((SCREEN_WIDTH_1P - text_main.get_width()) / 2, SCREEN_HEIGHT_1P - SCREEN_TOP_PART + 80))
             pygame.display.update()
 
         if score == -9999:
             is_finish = True
             font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
             text = font.render("You Lose!", True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_1P - text.get_width()) / 2, 400))
+            screen.blit(text, ((SCREEN_WIDTH_1P - text.get_width()) / 2, SCREEN_HEIGHT_1P - SCREEN_TOP_PART + 50))
 
             font_main = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 15)
             text_main = font_main.render('press tab key', True, (255, 255, 255))
-            screen.blit(text_main, ((SCREEN_WIDTH_1P - text_main.get_width()) / 2, 430))
+            screen.blit(text_main, ((SCREEN_WIDTH_1P - text_main.get_width()) / 2, SCREEN_HEIGHT_1P - SCREEN_TOP_PART + 80))
             pygame.display.update()
         pygame.display.update()
 
@@ -385,9 +435,10 @@ def main_sokoban_1p():
         show_start_page()
 
 MAP_MIDDLE_GAP = 64
+
 def main_sokoban_2p():
-    Test_map_1 = Map_preset(copy.deepcopy(map_p), [1, 1], 2)
-    Test_map_2 = Map_preset(copy.deepcopy(map_p), [1, 1], 2)
+    Test_map_1 = Map_preset(copy.deepcopy(map_p))
+    Test_map_2 = Map_preset(copy.deepcopy(map_p))
 
     map_1p = Test_map_1.map_struct
     player_loc_1p = Test_map_1.player_loc
@@ -398,7 +449,9 @@ def main_sokoban_2p():
     score_2p = Test_map_2.score
 
     SCREEN_WIDTH_2P = SCREEN_MARGIN * 2 + len(map_1p[0]) * ONE_BLOCK_SIZE * 2 + MAP_MIDDLE_GAP
-    screen = pygame.display.set_mode((SCREEN_WIDTH_2P, SCREEN_HEIGHT))
+    SCREEN_HEIGHT_2P = SCREEN_TOP_PART * 2 + len(map_1p) * ONE_BLOCK_SIZE
+
+    screen = pygame.display.set_mode((SCREEN_WIDTH_2P, SCREEN_HEIGHT_2P))
     pygame.display.set_caption("소코반 2p")
     screen.fill((0, 0, 0))
     fps = pygame.time.Clock()
@@ -440,11 +493,11 @@ def main_sokoban_2p():
         def print_finish(winner):
             font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
             text = font.render(winner, True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, 400))
+            screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, SCREEN_HEIGHT_2P - SCREEN_TOP_PART + 50))
 
             font_main = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 15)
             text_main = font_main.render('press tab key', True, (255, 255, 255))
-            screen.blit(text_main, ((SCREEN_WIDTH_2P - text_main.get_width()) / 2, 430))
+            screen.blit(text_main, ((SCREEN_WIDTH_2P - text_main.get_width()) / 2, SCREEN_HEIGHT_2P - SCREEN_TOP_PART + 80))
             return True
 
         if score_1p == 0 and score_2p == 0:
@@ -569,7 +622,6 @@ def show_start_page():
         pygame.display.update()
         fps.tick(60)
 
-    print(is_start_pressed_2p, is_start_pressed_1p)
     if is_start_pressed_1p:
         start_1p_game()
     elif is_start_pressed_2p:
@@ -577,5 +629,4 @@ def show_start_page():
 
 
 #소코반 시작
-# main_sokoban_1p()
 show_start_page()
