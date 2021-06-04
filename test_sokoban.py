@@ -42,7 +42,7 @@ class MainMenuButton:
             display.blit(btn, (x, y))
             if click[0] and action != None and not self.is_pressed:
                 self.is_pressed = True
-                action()
+                # action(display)
             elif not click[0] and self.is_pressed:
                 self.is_pressed = False
         else:
@@ -263,7 +263,7 @@ def change_mark(map,be_x,be_y,af_x,af_y,be_mark,af_mark):
     return map,[af_x,af_y]
 
 #소코반의 메인 함수 이 함수를 호출하여 소코반 시작
-def main_sokoban():
+def main_sokoban_1p():
     #맵의 기본 정보 불러옴
     #map_struct = 맵 구조 (리스트)
     #player_loc = 초기 플레이어의 위치
@@ -280,6 +280,9 @@ def main_sokoban():
     fps = pygame.time.Clock()
     #키 눌렀는지 확인하는 변수
     check = False
+    is_game = True
+    go_to_main = False
+    is_finish = False
     check_key = ""
 
     title_font = pygame.font.Font("fonts/Fipps-Regular.ttf", 30)
@@ -288,10 +291,10 @@ def main_sokoban():
     pygame.display.update()
 
     #남은 박스의 갯수가 0일때 종료
-    while True:
+    while is_game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                is_game = False
         #방향 입력받는 변수
         push_key = ""
         #맵 보여줌
@@ -308,15 +311,25 @@ def main_sokoban():
         screen.blit(box, ((SCREEN_WIDTH_1P - box.get_width()) / 2, 100))
 
         if score == 0:
+            is_finish = True
             font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
             text = font.render("You Win!", True, (255, 255, 255))
             screen.blit(text, ((SCREEN_WIDTH_1P - text.get_width()) / 2, 400))
+
+            font_main = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 15)
+            text_main = font_main.render('press tab key', True, (255, 255, 255))
+            screen.blit(text_main, ((SCREEN_WIDTH_1P - text_main.get_width()) / 2, 430))
             pygame.display.update()
 
         if score == -9999:
+            is_finish = True
             font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
             text = font.render("You Lose!", True, (255, 255, 255))
             screen.blit(text, ((SCREEN_WIDTH_1P - text.get_width()) / 2, 400))
+
+            font_main = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 15)
+            text_main = font_main.render('press tab key', True, (255, 255, 255))
+            screen.blit(text_main, ((SCREEN_WIDTH_1P - text_main.get_width()) / 2, 430))
             pygame.display.update()
         pygame.display.update()
 
@@ -341,21 +354,22 @@ def main_sokoban():
         key_event = pygame.key.get_pressed()
         if event.type == pygame.KEYDOWN and check == False:
             key_event = pygame.key.get_pressed()
-            if key_event[pygame.K_LEFT]:
-                push_key = "l"
-                check_key = "l"
-            if key_event[pygame.K_RIGHT]:
-                push_key = "r"
-                check_key = "r"
-            if key_event[pygame.K_UP]:
-                push_key = "u"
-                check_key = "u"
-            if key_event[pygame.K_DOWN]:
-                push_key = "d"
-                check_key = "d"
+            if not is_finish:
+                if key_event[pygame.K_LEFT]:
+                    push_key = "l"
+                    check_key = "l"
+                if key_event[pygame.K_RIGHT]:
+                    push_key = "r"
+                    check_key = "r"
+                if key_event[pygame.K_UP]:
+                    push_key = "u"
+                    check_key = "u"
+                if key_event[pygame.K_DOWN]:
+                    push_key = "d"
+                    check_key = "d"
             if key_event[pygame.K_TAB]:
-                break
-                show_start_page()
+                is_game = False
+                go_to_main = True
 
             check = True
             player_loc, map, score = character_move(player_loc, push_key, map, score)
@@ -366,6 +380,9 @@ def main_sokoban():
 
         fps.tick(30)
         show_map(map,screen, SCREEN_MARGIN, 160)
+
+    if go_to_main:
+        show_start_page()
 
 MAP_MIDDLE_GAP = 64
 def main_sokoban_2p():
@@ -391,11 +408,13 @@ def main_sokoban_2p():
 
     check_1p = False
     check_2p = False
-
-    while True:
+    is_game = True
+    is_finish = False
+    go_to_main = False
+    while is_game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                is_game = False
         screen.fill((0, 0, 0))
 
         title = title_font.render("Sokoban 2P", True, (255, 255, 255))
@@ -418,84 +437,83 @@ def main_sokoban_2p():
         screen.blit(loc_2p, (((SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - loc_2p.get_width()) / 2 + SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE, 80))
         screen.blit(box_2p, (((SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP) - box_2p.get_width()) / 2 + SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE, 100))
 
-        if score_1p == 0 and score_2p == 0:
+        def print_finish(winner):
             font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
-            text = font.render("Draw!", True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, 400))
-        elif score_1p == 0 and score_2p != 0:
-            font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
-            text = font.render("1P Win!", True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, 400))
-        elif score_1p != 0 and score_2p == 0:
-            font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
-            text = font.render("2P Win!", True, (255, 255, 255))
+            text = font.render(winner, True, (255, 255, 255))
             screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, 400))
 
+            font_main = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 15)
+            text_main = font_main.render('press tab key', True, (255, 255, 255))
+            screen.blit(text_main, ((SCREEN_WIDTH_2P - text_main.get_width()) / 2, 430))
+            return True
+
+        if score_1p == 0 and score_2p == 0:
+            is_finish = print_finish('Draw!')
+        elif score_1p == 0 and score_2p != 0:
+            is_finish = print_finish('1P Win!')
+        elif score_1p != 0 and score_2p == 0:
+            is_finish = print_finish('2P Win!')
+
         if score_1p == -9999 and score_2p == -9999:
-            font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
-            text = font.render("Draw!", True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, 400))
+            is_finish = print_finish('Draw!')
         elif score_1p == -9999 and score_2p != -9999:
-            font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
-            text = font.render("2P Win!", True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, 400))
+            is_finish = print_finish('2P Win!')
         elif score_1p != -9999 and score_2p == -9999:
-            font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 30)
-            text = font.render("1P Win!", True, (255, 255, 255))
-            screen.blit(text, ((SCREEN_WIDTH_2P - text.get_width()) / 2, 400))
+            is_finish = print_finish('1P Win!')
 
         event = pygame.event.wait()
         if event.type == pygame.KEYDOWN and (not check_1p or not check_2p):
             key_event = pygame.key.get_pressed()
-            if not check_1p:
-                is_1p_pressed = False
-                if key_event[pygame.K_a]:
-                    push_key_1p = "l"
-                    check_key_2p = "l"
-                    is_1p_pressed = True
-                elif key_event[pygame.K_d]:
-                    push_key_1p = "r"
-                    check_key_2p = "r"
-                    is_1p_pressed = True
-                elif key_event[pygame.K_w]:
-                    push_key_1p = "u"
-                    check_key_2p = "u"
-                    is_1p_pressed = True
-                elif key_event[pygame.K_s]:
-                    push_key_1p = "d"
-                    check_key_2p = "d"
-                    is_1p_pressed = True
+            if not is_finish:
+                if not check_1p:
+                    is_1p_pressed = False
+                    if key_event[pygame.K_a]:
+                        push_key_1p = "l"
+                        check_key_2p = "l"
+                        is_1p_pressed = True
+                    elif key_event[pygame.K_d]:
+                        push_key_1p = "r"
+                        check_key_2p = "r"
+                        is_1p_pressed = True
+                    elif key_event[pygame.K_w]:
+                        push_key_1p = "u"
+                        check_key_2p = "u"
+                        is_1p_pressed = True
+                    elif key_event[pygame.K_s]:
+                        push_key_1p = "d"
+                        check_key_2p = "d"
+                        is_1p_pressed = True
 
-                if is_1p_pressed:
-                    check_1p = True
-                    player_loc_1p, map_1p, score_1p = character_move(player_loc_1p, push_key_1p, map_1p, score_1p)
+                    if is_1p_pressed:
+                        check_1p = True
+                        player_loc_1p, map_1p, score_1p = character_move(player_loc_1p, push_key_1p, map_1p, score_1p)
 
-            if not check_2p:
-                is_2p_pressed = False
-                if key_event[pygame.K_LEFT]:
-                    push_key_2p = "l"
-                    check_key_1p = "l"
-                    is_2p_pressed = True
-                elif key_event[pygame.K_RIGHT]:
-                    push_key_2p = "r"
-                    check_key_1p = "r"
-                    is_2p_pressed = True
-                elif key_event[pygame.K_UP]:
-                    push_key_2p = "u"
-                    check_key_1p = "u"
-                    is_2p_pressed = True
-                elif key_event[pygame.K_DOWN]:
-                    push_key_2p = "d"
-                    check_key_1p = "d"
-                    is_2p_pressed = True
+                if not check_2p:
+                    is_2p_pressed = False
+                    if key_event[pygame.K_LEFT]:
+                        push_key_2p = "l"
+                        check_key_1p = "l"
+                        is_2p_pressed = True
+                    elif key_event[pygame.K_RIGHT]:
+                        push_key_2p = "r"
+                        check_key_1p = "r"
+                        is_2p_pressed = True
+                    elif key_event[pygame.K_UP]:
+                        push_key_2p = "u"
+                        check_key_1p = "u"
+                        is_2p_pressed = True
+                    elif key_event[pygame.K_DOWN]:
+                        push_key_2p = "d"
+                        check_key_1p = "d"
+                        is_2p_pressed = True
 
-                if is_2p_pressed:
-                    check_2p = True
-                    player_loc_2p, map_2p, score_2p = character_move(player_loc_2p, push_key_2p, map_2p, score_2p)
+                    if is_2p_pressed:
+                        check_2p = True
+                        player_loc_2p, map_2p, score_2p = character_move(player_loc_2p, push_key_2p, map_2p, score_2p)
 
             if key_event[pygame.K_TAB]:
-                break
-                show_start_page()
+                is_game = False
+                go_to_main = True
 
         # event = pygame.event.wait()
         if event.type == pygame.KEYUP:
@@ -511,9 +529,12 @@ def main_sokoban_2p():
         pygame.display.update()
         fps.tick(60)
 
+    if go_to_main:
+        show_start_page()
+
 def start_1p_game():
     print("1p game start")
-    main_sokoban()
+    main_sokoban_1p()
 
 def start_2p_game():
     print('2p game start')
@@ -526,11 +547,11 @@ def show_start_page():
 
     is_start_pressed_1p = False
     is_start_pressed_2p = False
-
-    while True:
+    is_game = True
+    while is_game:
         event = pygame.event.poll()  # 이벤트 처리
         if event.type == pygame.QUIT:
-            break
+            is_game = False
 
         screen.fill((0, 0, 0))
         title_font = pygame.font.Font("fonts/Fipps-Regular.ttf", 30)
@@ -542,10 +563,19 @@ def show_start_page():
         is_start_pressed_1p = btn_1p.get_pressed()
         is_start_pressed_2p = btn_2p.get_pressed()
 
+        if is_start_pressed_1p or is_start_pressed_2p:
+            is_game = False
+
         pygame.display.update()
-        fps.tick(30)
+        fps.tick(60)
+
+    print(is_start_pressed_2p, is_start_pressed_1p)
+    if is_start_pressed_1p:
+        start_1p_game()
+    elif is_start_pressed_2p:
+        start_2p_game()
 
 
 #소코반 시작
-# main_sokoban()
+# main_sokoban_1p()
 show_start_page()
