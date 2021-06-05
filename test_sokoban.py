@@ -404,6 +404,7 @@ def main_sokoban_1p():
                 push_key = "d"
                 check_key = "d"
             elif event.key == pygame.K_TAB:
+
                 is_game = False
                 go_to_main = True
 
@@ -445,7 +446,6 @@ def main_sokoban_1p():
 MAP_MIDDLE_GAP = 64
 
 def main_sokoban_2p():
-
     Test_map_1 = Map_preset(copy.deepcopy(map_p))
     Test_map_2 = Map_preset(copy.deepcopy(map_p))
 
@@ -468,7 +468,6 @@ def main_sokoban_2p():
     title_font = pygame.font.Font("fonts/Fipps-Regular.ttf", 30)
     other_font = pygame.font.Font("fonts/PressStart2P-vaV7.ttf", 10)
 
-
     check_1p = False
     check_2p = False
     is_game = True
@@ -483,6 +482,7 @@ def main_sokoban_2p():
     check_2p_release_key = ""
     push_key_1p = ""
     push_key_2p = ""
+    
     while is_game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -532,6 +532,7 @@ def main_sokoban_2p():
             is_finish = print_finish('2P Win!')
         elif score_1p != -9999 and score_2p == -9999:
             is_finish = print_finish('1P Win!')
+            
         #TODO 키 입력 개선
         event = pygame.event.wait()
         if not is_finish:
