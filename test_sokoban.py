@@ -1,6 +1,7 @@
 import pygame
 import sys
 import copy
+import threading
 
 pygame.init()
 #맵 프리셋 객체
@@ -248,7 +249,7 @@ def character_move(play_loc,dir,map,score):
 
         #l,u,d,r이외의 값이 입력됬을 때 예외처리
         else:
-            print("!error > character_move > dir에 잘못된 방향이 입력됨")
+            print("!error > character_move > dir에 잘못된 방향이 입력됨"+str(dir)+" gg")
 
     #갱신된 값들을 다시 반환
     return play_loc,map,score
@@ -384,49 +385,57 @@ def main_sokoban_1p():
         pygame.display.update()
 
 
-        # #남은 박스 갯수 표시
-        # print("Left boxes >> ",score)
-        # #현재 위치 표시
-        # print("Your location >> ", [player_loc[0]+1,player_loc[1]+1])
-        # print("< < 이동할 방향을 입력하세요 > >")
-        # print(" ←(l)  ↑(u)  ↓(d)  →(r) ")
-        # push_key = input(">> ")
-        # #입력받은 값 확인
-        # if push_key in ["l","u","d","r"]:
-        #     player_loc,map,score = character_move(player_loc,push_key,map,score)
-        #예외처리
-        #
-        # else:
-        #     print("키를 잘못 입력하셨습니다.")
-
-
         # 방향키 인식
-        key_event = pygame.key.get_pressed()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+
         if event.type == pygame.KEYDOWN and check == False:
-            key_event = pygame.key.get_pressed()
-            if not is_finish:
-                if key_event[pygame.K_LEFT]:
-                    push_key = "l"
-                    check_key = "l"
-                if key_event[pygame.K_RIGHT]:
-                    push_key = "r"
-                    check_key = "r"
-                if key_event[pygame.K_UP]:
-                    push_key = "u"
-                    check_key = "u"
-                if key_event[pygame.K_DOWN]:
-                    push_key = "d"
-                    check_key = "d"
-            if key_event[pygame.K_TAB]:
+            if event.key == pygame.K_LEFT:
+                push_key = "l"
+                check_key = "l"
+            elif event.key == pygame.K_RIGHT:
+                push_key = "r"
+                check_key = "r"
+            elif event.key == pygame.K_UP:
+                push_key = "u"
+                check_key = "u"
+            elif event.key == pygame.K_DOWN:
+                push_key = "d"
+                check_key = "d"
+            elif event.key == pygame.K_TAB:
+
                 is_game = False
                 go_to_main = True
 
             check = True
             player_loc, map, score = character_move(player_loc, push_key, map, score)
 
-        if event.type == pygame.KEYUP:
-            check = False
+        if event.type == pygame.KEYUP and check == True:
 
+            if event.key == pygame.K_LEFT:
+                check_release = "l"
+
+            elif event.key == pygame.K_RIGHT:
+
+                check_release = "r"
+
+            elif event.key == pygame.K_UP:
+
+                check_release = "u"
+
+            elif event.key ==pygame.K_DOWN:
+
+                check_release = "d"
+
+            if (check_release == check_key):
+
+                check = False
+
+        key_event = pygame.key.get_pressed()
+        if key_event[pygame.K_TAB]:
+            is_game = False
+            go_to_main = True
 
         fps.tick(30)
         show_map(map,screen, SCREEN_MARGIN, 160)
@@ -464,6 +473,16 @@ def main_sokoban_2p():
     is_game = True
     is_finish = False
     go_to_main = False
+
+    check_1p_preseed = False
+    check_2p_preseed = False
+    check_1p_preseed_key = ""
+    check_2p_preseed_key = ""
+    check_1p_release_key = ""
+    check_2p_release_key = ""
+    push_key_1p = ""
+    push_key_2p = ""
+    
     while is_game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -513,68 +532,162 @@ def main_sokoban_2p():
             is_finish = print_finish('2P Win!')
         elif score_1p != -9999 and score_2p == -9999:
             is_finish = print_finish('1P Win!')
-
+            
+        #TODO 키 입력 개선
         event = pygame.event.wait()
-        if event.type == pygame.KEYDOWN and (not check_1p or not check_2p):
+        if not is_finish:
+            if event.type == pygame.KEYDOWN and check_1p_preseed == False:
+                push_key_1p = ""
+                check_1p = 0
+                if event.key == pygame.K_a:
+                    push_key_1p = "l"
+                    check_1p_preseed_key = "l"
+                    check_1p = 1
+                elif event.key == pygame.K_d:
+                    push_key_1p = "r"
+                    check_1p_preseed_key = "r"
+                    check_1p = 1
+                elif event.key == pygame.K_w:
+                    push_key_1p = "u"
+                    check_1p_preseed_key = "u"
+                    check_1p = 1
+                elif event.key == pygame.K_s:
+                    push_key_1p = "d"
+                    check_1p_preseed_key = "d"
+                    check_1p = 1
+                if check_1p == 1:
+                    check_1p_preseed = True
+                    player_loc_1p, map_1p, score_1p = character_move(player_loc_1p, push_key_1p, map_1p, score_1p)
+
+            if event.type == pygame.KEYDOWN and check_2p_preseed == False:
+                push_key_2p = ""
+                check_2p = 0
+                if event.key == pygame.K_LEFT:
+                    push_key_2p = "l"
+                    check_2p_preseed_key = "l"
+                    check_2p = 1
+                elif event.key == pygame.K_RIGHT:
+                    push_key_2p = "r"
+                    check_2p_preseed_key = "r"
+                    check_2p = 1
+                elif event.key == pygame.K_UP:
+                    push_key_2p = "u"
+                    check_2p_preseed_key = "u"
+                    check_2p = 1
+                elif event.key == pygame.K_DOWN:
+                    push_key_2p = "d"
+                    check_2p_preseed_key = "d"
+                    check_2p = 1
+                if check_2p == 1:
+                    check_2p_preseed = True
+                    player_loc_2p, map_2p, score_2p = character_move(player_loc_2p, push_key_2p, map_2p, score_2p)
+
+            if event.type == pygame.KEYUP and check_1p_preseed == True:
+
+                if event.key == pygame.K_a:
+                    check_1p_release = "l"
+
+                elif event.key == pygame.K_d:
+
+                    check_1p_release = "r"
+
+                elif event.key == pygame.K_w:
+
+                    check_1p_release = "u"
+
+                elif event.key == pygame.K_s:
+
+                    check_1p_release = "d"
+
+                if (check_1p_release == check_1p_preseed_key):
+                    check_1p_preseed = False
+
+            if event.type == pygame.KEYUP and check_2p_preseed == True:
+
+                if event.key == pygame.K_LEFT:
+                    check_2p_release = "l"
+
+                elif event.key == pygame.K_RIGHT:
+
+                    check_2p_release = "r"
+
+                elif event.key == pygame.K_UP:
+
+                    check_2p_release = "u"
+
+                elif event.key == pygame.K_DOWN:
+
+                    check_2p_release = "d"
+
+                if (check_2p_release == check_2p_preseed_key):
+                    check_2p_preseed = False
+
             key_event = pygame.key.get_pressed()
-            if not is_finish:
-                if not check_1p:
-                    is_1p_pressed = False
-                    if key_event[pygame.K_a]:
-                        push_key_1p = "l"
-                        check_key_2p = "l"
-                        is_1p_pressed = True
-                    elif key_event[pygame.K_d]:
-                        push_key_1p = "r"
-                        check_key_2p = "r"
-                        is_1p_pressed = True
-                    elif key_event[pygame.K_w]:
-                        push_key_1p = "u"
-                        check_key_2p = "u"
-                        is_1p_pressed = True
-                    elif key_event[pygame.K_s]:
-                        push_key_1p = "d"
-                        check_key_2p = "d"
-                        is_1p_pressed = True
-
-                    if is_1p_pressed:
-                        check_1p = True
-                        player_loc_1p, map_1p, score_1p = character_move(player_loc_1p, push_key_1p, map_1p, score_1p)
-
-                if not check_2p:
-                    is_2p_pressed = False
-                    if key_event[pygame.K_LEFT]:
-                        push_key_2p = "l"
-                        check_key_1p = "l"
-                        is_2p_pressed = True
-                    elif key_event[pygame.K_RIGHT]:
-                        push_key_2p = "r"
-                        check_key_1p = "r"
-                        is_2p_pressed = True
-                    elif key_event[pygame.K_UP]:
-                        push_key_2p = "u"
-                        check_key_1p = "u"
-                        is_2p_pressed = True
-                    elif key_event[pygame.K_DOWN]:
-                        push_key_2p = "d"
-                        check_key_1p = "d"
-                        is_2p_pressed = True
-
-                    if is_2p_pressed:
-                        check_2p = True
-                        player_loc_2p, map_2p, score_2p = character_move(player_loc_2p, push_key_2p, map_2p, score_2p)
-
             if key_event[pygame.K_TAB]:
                 is_game = False
                 go_to_main = True
+        #-----------------------------------------------------
 
+                # if not check_1p:
+        #             is_1p_pressed = False
+        #             if key_event[pygame.K_a]:
+        #                 push_key_1p = "l"
+        #                 check_key_2p = "l"
+        #                 is_1p_pressed = True
+        #             elif key_event[pygame.K_d]:
+        #                 push_key_1p = "r"
+        #                 check_key_2p = "r"
+        #                 is_1p_pressed = True
+        #             elif key_event[pygame.K_w]:
+        #                 push_key_1p = "u"
+        #                 check_key_2p = "u"
+        #                 is_1p_pressed = True
+        #             elif key_event[pygame.K_s]:
+        #                 push_key_1p = "d"
+        #                 check_key_2p = "d"
+        #                 is_1p_pressed = True
+        #
+        #             if is_1p_pressed:
+        #                 check_1p = True
+        #                 player_loc_1p, map_1p, score_1p = character_move(player_loc_1p, push_key_1p, map_1p, score_1p)
+        #
+        #         if not check_2p:
+        #             is_2p_pressed = False
+        #             if key_event[pygame.K_LEFT]:
+        #                 push_key_2p = "l"
+        #                 check_key_1p = "l"
+        #                 is_2p_pressed = True
+        #             elif key_event[pygame.K_RIGHT]:
+        #                 push_key_2p = "r"
+        #                 check_key_1p = "r"
+        #                 is_2p_pressed = True
+        #             elif key_event[pygame.K_UP]:
+        #                 push_key_2p = "u"
+        #                 check_key_1p = "u"
+        #                 is_2p_pressed = True
+        #             elif key_event[pygame.K_DOWN]:
+        #                 push_key_2p = "d"
+        #                 check_key_1p = "d"
+        #                 is_2p_pressed = True
+        #
+        #             if is_2p_pressed:
+        #                 check_2p = True
+        #                 player_loc_2p, map_2p, score_2p = character_move(player_loc_2p, push_key_2p, map_2p, score_2p)
+        #
+        #     if key_event[pygame.K_TAB]:
+        #         is_game = False
+        #         go_to_main = True
+        #
         # event = pygame.event.wait()
-        if event.type == pygame.KEYUP:
-            key_event = pygame.key.get_pressed()
-            if not (key_event[pygame.K_LEFT] or key_event[pygame.K_RIGHT] or key_event[pygame.K_UP] or key_event[pygame.K_DOWN]):
-                check_1p = False
-            if not (key_event[pygame.K_a] or key_event[pygame.K_d] or key_event[pygame.K_w] or key_event[pygame.K_s]):
-                check_2p = False
+        # if event.type == pygame.KEYUP:
+        #     key_event = pygame.key.get_pressed()
+        #     if not (key_event[pygame.K_LEFT] or key_event[pygame.K_RIGHT] or key_event[pygame.K_UP] or key_event[pygame.K_DOWN]):
+        #         check_1p = False
+        #     if not (key_event[pygame.K_a] or key_event[pygame.K_d] or key_event[pygame.K_w] or key_event[pygame.K_s]):
+        #         check_2p = False
+        # if event == pygame.K_TAB:
+        #     is_game = False
+        #     go_to_main = True
 
         show_map(map_1p, screen, SCREEN_MARGIN, 160)
         show_map(map_2p, screen, SCREEN_MARGIN + len(map_2p[0]) * ONE_BLOCK_SIZE + MAP_MIDDLE_GAP, 160)
@@ -626,7 +739,6 @@ def show_start_page():
         start_1p_game()
     elif is_start_pressed_2p:
         start_2p_game()
-
 
 #소코반 시작
 show_start_page()
